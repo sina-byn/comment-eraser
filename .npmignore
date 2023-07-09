@@ -1,0 +1,11 @@
+node_modules
+/scripts
+/utils
+
+index.js
+
+.git
+.gitignore
+.prettierrc
+.vscode
+.env

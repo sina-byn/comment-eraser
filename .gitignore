@@ -1,0 +1,6 @@
+wipeout.config.json
+node_modules
+/build
+
+.vscode
+.env

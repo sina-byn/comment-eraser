@@ -1,0 +1,19 @@
+{
+  "name": "comment-wipeout",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "node scripts/build.js"
+  },
+  "keywords": [],
+  "author": "Sina Bayandorian",
+  "license": "ISC",
+  "dependencies": {
+    "glob": "^10.3.1"
+  },
+  "devDependencies": {
+    "uglify-js": "^3.17.4"
+  }
+}
