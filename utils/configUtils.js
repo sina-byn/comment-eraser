@@ -9,6 +9,7 @@ const DEFAULT_CONFIG = {
   outputDir: '',
   postfix: '-no-comments',
   excludePatterns: [],
+  interactive: false
 };
 
 const checkAndSetConfig = config => {

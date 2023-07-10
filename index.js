@@ -1,4 +1,5 @@
-const fs = require('fs');
+const fs = require('fs-extra');
+const readline = require('readline');
 const { performance } = require('perf_hooks');
 
 // * utils
@@ -18,6 +19,11 @@ const patterns = {
   block: blockCommentPattern,
   both: commentPattern,
 };
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
 const removeComments = ({ code, pattern, excludePatterns }) => {
   let removedChars = 0;
@@ -49,9 +55,9 @@ const removeComments = ({ code, pattern, excludePatterns }) => {
   return [code, removedChars];
 };
 
-const processFile = ({ filePath, pattern, config }) => {
+const processFile = (filePath, config) => {
   const startTime = performance.now();
-  const { replace, outputDir, postfix, excludePatterns } = config;
+  const { pattern, replace, outputDir, postfix, excludePatterns } = config;
 
   const jsCode = fs.readFileSync(filePath, 'utf-8');
   const outputPath = getOutputPath(outputDir, filePath, postfix);
@@ -75,29 +81,80 @@ const processFile = ({ filePath, pattern, config }) => {
   };
 };
 
+const processFiles = (filePaths, results, config) => {
+  const { interactive } = config;
+
+  if (interactive) {
+    fs.writeFileSync('prelog.txt', filePaths.map(p => p + '=y').join('\n'));
+
+    rl.question(
+      `Edit \x1b[4mprelog.txt\x1b[0m and then press enter to continue`,
+      () => {
+        const content = fs.readFileSync('prelog.txt', 'utf-8');
+        const filesRules = content
+          .split('\n')
+          .map(rule => rule.split('='))
+          .filter(rule => rule.length === 2 && rule[1] === 'y');
+
+        for (const [filePath, _] of filesRules) {
+          results.push(processFile(filePath, config));
+        }
+
+        rl.close();
+      },
+    );
+
+    return;
+  }
+
+  rl.close();
+  filePaths.forEach(filePath => {
+    results.push(processFile(filePath, config));
+  });
+};
+
 const init = () => {
   const config = loadConfig();
-  const { type, include, exclude, outputDir, postfix } = config;
+  const { type, include, exclude, interactive, outputDir, postfix } = config;
   const pattern = patterns[type];
   let results = [];
 
-  if (outputDir && !fs.existsSync(outputDir))
-    fs.mkdirSync(outputDir, { recursive: true });
+  if (outputDir) {
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    else fs.emptyDirSync(outputDir);
+  }
 
   const filePaths = getPaths(include, exclude, postfix);
-  filePaths.forEach(async filePath => {
-    const result = processFile({ filePath, pattern, config });
-    results.push(result);
-  });
 
-  return results;
+  processFiles(filePaths, results, { ...config, pattern });
+
+  return [results, interactive];
 };
 
 const wipeout = () => {
+  const { outputDir } = loadConfig();
+  process.on('exit', () => {
+    if (fs.existsSync('prelog.txt')) fs.unlinkSync('prelog.txt');
+    if (outputDir && fs.existsSync(outputDir)) {
+      const isEmpty = fs.readdirSync(outputDir).length === 0;
+      if (isEmpty) fs.rmdirSync(outputDir);
+    }
+  });
+
   const label = formatLog('wipeout', 'green');
   console.time(label);
 
-  const results = init();
+  const [results, interactive] = init();
+
+  if (interactive) {
+    rl.on('close', () => {
+      console.log(label);
+      console.log('\x1b[0m');
+      console.table(formatResults(results));
+    });
+
+    return;
+  }
 
   console.timeEnd(label);
   console.log('\x1b[0m');
