@@ -1,3 +1,4 @@
+const tmp = require('tmp');
 const fs = require('fs-extra');
 const readline = require('readline');
 const { performance } = require('perf_hooks');
@@ -6,6 +7,7 @@ const { performance } = require('perf_hooks');
 const { getPaths, getOutputPath } = require('./utils/fileUtils');
 const { formatLog, formatResults } = require('./utils/utils');
 const { loadConfig } = require('./utils/configUtils');
+const path = require('path');
 
 // * patterns
 const commentPattern =
@@ -81,23 +83,22 @@ const processFile = (filePath, config) => {
   };
 };
 
-const processFiles = (filePaths, results, config) => {
-  const { interactive } = config;
+const processFiles = (filePaths, logs, config) => {
+  const { interactive, tempFilePath } = config;
+  const tempFileName = path.parse(tempFilePath).base;
 
   if (interactive) {
-    fs.writeFileSync('prelog.txt', filePaths.map(p => p + '=y').join('\n'));
-
     rl.question(
-      `Edit \x1b[4mprelog.txt\x1b[0m and then press enter to continue`,
+      `Edit \x1b[4m\x1b[34m${tempFileName}\x1b[0m and then press enter to continue`,
       () => {
-        const content = fs.readFileSync('prelog.txt', 'utf-8');
+        const content = fs.readFileSync(tempFilePath, 'utf-8');
         const filesRules = content
           .split('\n')
           .map(rule => rule.split('='))
           .filter(rule => rule.length === 2 && rule[1] === 'y');
 
         for (const [filePath, _] of filesRules) {
-          results.push(processFile(filePath, config));
+          logs.push(processFile(filePath, config));
         }
 
         rl.close();
@@ -109,15 +110,15 @@ const processFiles = (filePaths, results, config) => {
 
   rl.close();
   filePaths.forEach(filePath => {
-    results.push(processFile(filePath, config));
+    logs.push(processFile(filePath, config));
   });
 };
 
-const init = () => {
+const init = tempFilePath => {
   const config = loadConfig();
-  const { type, include, exclude, interactive, outputDir, postfix } = config;
+  const { type, include, exclude, outputDir, postfix, interactive } = config;
   const pattern = patterns[type];
-  let results = [];
+  let logs = [];
 
   if (outputDir) {
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -126,31 +127,38 @@ const init = () => {
 
   const filePaths = getPaths(include, exclude, postfix);
 
-  processFiles(filePaths, results, { ...config, pattern });
+  if (interactive)
+    fs.writeFileSync(tempFilePath, filePaths.map(p => p + '=y').join('\n'));
 
-  return [results, interactive];
+  processFiles(filePaths, logs, { ...config, pattern, tempFilePath });
+
+  return logs;
 };
 
 const wipeout = () => {
-  const { outputDir } = loadConfig();
-  process.on('exit', () => {
-    if (fs.existsSync('prelog.txt')) fs.unlinkSync('prelog.txt');
-    if (outputDir && fs.existsSync(outputDir)) {
-      const isEmpty = fs.readdirSync(outputDir).length === 0;
-      if (isEmpty) fs.rmdirSync(outputDir);
-    }
-  });
+  const { interactive, outputDir } = loadConfig();
+  let tempFilePath = null;
 
   const label = formatLog('wipeout', 'green');
   console.time(label);
 
-  const [results, interactive] = init();
+  if (interactive) {
+    tmp.setGracefulCleanup();
+    const tempFile = tmp.fileSync({
+      mode: 0o644,
+      prefix: 'prelog',
+      tmpdir: process.cwd(),
+    });
+    tempFilePath = tempFile.name;
+  }
+
+  const logs = init(tempFilePath);
 
   if (interactive) {
     rl.on('close', () => {
       console.log(label);
       console.log('\x1b[0m');
-      console.table(formatResults(results));
+      console.table(formatResults(logs));
     });
 
     return;
@@ -158,7 +166,14 @@ const wipeout = () => {
 
   console.timeEnd(label);
   console.log('\x1b[0m');
-  console.table(formatResults(results));
+  console.table(formatResults(logs));
+
+  process.on('exit', () => {
+    if (outputDir && fs.existsSync(outputDir)) {
+      const isEmpty = fs.readdirSync(outputDir).length === 0;
+      if (isEmpty) fs.rmdirSync(outputDir);
+    }
+  });
 };
 
 module.exports = wipeout;
