@@ -3,6 +3,7 @@ node_modules
 /utils
 
 index.js
+eraser.config.json
 
 .git
 .gitignore

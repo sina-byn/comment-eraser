@@ -1,4 +1,5 @@
 const tmp = require('tmp');
+const path = require('path');
 const fs = require('fs-extra');
 const readline = require('readline');
 const { performance } = require('perf_hooks');
@@ -7,7 +8,6 @@ const { performance } = require('perf_hooks');
 const { getPaths, getOutputPath } = require('./utils/fileUtils');
 const { formatLog, formatLogs } = require('./utils/utils');
 const { loadConfig } = require('./utils/configUtils');
-const path = require('path');
 
 // * patterns
 const commentPattern =
@@ -85,9 +85,10 @@ const processFile = (filePath, config) => {
 
 const processFiles = (filePaths, logs, config) => {
   const { interactive, tempFilePath } = config;
-  const tempFileName = path.parse(tempFilePath).base;
 
   if (interactive) {
+    const tempFileName = path.parse(tempFilePath).base;
+
     rl.question(
       `Edit \x1b[4m\x1b[34m${tempFileName}\x1b[0m and then press enter to continue`,
       () => {
@@ -135,11 +136,11 @@ const init = tempFilePath => {
   return logs;
 };
 
-const wipeout = () => {
+const erase = () => {
   const { interactive, outputDir } = loadConfig();
   let tempFilePath = null;
 
-  const label = formatLog('wipeout', 'green');
+  const label = formatLog('erased', 'green');
   console.time(label);
 
   if (interactive) {
@@ -176,4 +177,4 @@ const wipeout = () => {
   });
 };
 
-module.exports = wipeout;
+module.exports = erase;

@@ -1,13 +1,11 @@
 {
-  "name": "comment-wipeout",
+  "name": "comment-eraser",
   "version": "1.0.0",
-  "description": "",
   "main": "build/index.js",
   "scripts": {
     "start": "node index.js",
     "build": "node scripts/build.js"
   },
-  "keywords": [],
   "author": "Sina Bayandorian",
   "license": "ISC",
   "dependencies": {
@@ -17,5 +15,15 @@
   },
   "devDependencies": {
     "uglify-js": "^3.17.4"
-  }
+  },
+  "description": "comment-eraser is a Node.js package that removes comments from JavaScript files efficiently. It offers customizable options for tailoring the comment removal process and includes an interactive mode for selective file cleanup. Overall, comment-eraser simplifies and streamlines code cleanup tasks.",
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "npm-package",
+    "utility-library",
+    "comment-remover",
+    "code-cleanup",
+    "interactive-mode"
+  ]
 }

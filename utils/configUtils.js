@@ -6,7 +6,7 @@ const DEFAULT_CONFIG = {
   include: ['./**/*'],
   exclude: [],
   replace: false,
-  outputDir: '',
+  outputDir: 'no-comments',
   postfix: '-no-comments',
   excludePatterns: [],
   interactive: false
@@ -23,7 +23,7 @@ const loadConfig = () => {
   let config;
 
   try {
-    config = JSON.parse(fs.readFileSync('wipeout.config.json', 'utf-8'));
+    config = JSON.parse(fs.readFileSync('eraser.config.json', 'utf-8'));
   } catch (err) {
     return DEFAULT_CONFIG;
   }
