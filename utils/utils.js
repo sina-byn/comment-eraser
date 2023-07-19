@@ -14,7 +14,7 @@ const formatMilliseconds = ms => {
   return formattedTime;
 };
 
-const formatResults = results =>
+const formatLogs = results =>
   results.map(res => {
     delete res.commentsRemoved;
     res.removedChars = [res.removedChars.toLocaleString(), res.removedChars];
@@ -46,4 +46,4 @@ const formatLog = (text, fgColor) => {
   return reset + fg + text;
 };
 
-module.exports = { formatResults, formatLog };
+module.exports = { formatLog, formatLogs };

@@ -5,7 +5,7 @@ const { performance } = require('perf_hooks');
 
 // * utils
 const { getPaths, getOutputPath } = require('./utils/fileUtils');
-const { formatLog, formatResults } = require('./utils/utils');
+const { formatLog, formatLogs } = require('./utils/utils');
 const { loadConfig } = require('./utils/configUtils');
 const path = require('path');
 
@@ -158,7 +158,7 @@ const wipeout = () => {
     rl.on('close', () => {
       console.log(label);
       console.log('\x1b[0m');
-      console.table(formatResults(logs));
+      console.table(formatLogs(logs));
     });
 
     return;
@@ -166,7 +166,7 @@ const wipeout = () => {
 
   console.timeEnd(label);
   console.log('\x1b[0m');
-  console.table(formatResults(logs));
+  console.table(formatLogs(logs));
 
   process.on('exit', () => {
     if (outputDir && fs.existsSync(outputDir)) {
