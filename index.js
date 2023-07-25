@@ -6,16 +6,16 @@ const { performance } = require('perf_hooks');
 
 // * utils
 const { getPaths, getOutputPath } = require('./utils/fileUtils');
-const { formatLog, formatLogs } = require('./utils/utils');
+const { formatLog, formatLogs, formatMilliseconds } = require('./utils/utils');
 const { loadConfig } = require('./utils/configUtils');
 
 // * patterns
 const commentPattern =
-  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\r*\n*\/\/.*\r\n|\r*\n*\/\/.*|\r*\n*\/\*[\s\S]*?\*\/\s*$|\/\*[\s\S]*?\*\/\s*/gm;
+  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\r*\n*\/\/.*\r*\n|\r*\n*\/\/.*|\r*\n*\/\*[\s\S]*?\*\/\s*$|\/\*[\s\S]*?\*\/\s*/gm;
 const inlineCommentPattern =
-  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\r*\n*\/\/.*\r\n|\r*\n*\/\/.*/gm;
+  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\r*\n*\/\/.*\r*\n|\r*\n*\/\/.*/gm;
 const blockCommentPattern =
-  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\r*\n*\/\*[\s\S]*?\*\/\s*$|\/\*[\s\S]*?\*\/\s*/gm;
+  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\s*\r*\n*\/\*[\s\S]*?\*\/\s*$|\/\*[\s\S]*?\*\/\s*/gm;
 const patterns = {
   inline: inlineCommentPattern,
   block: blockCommentPattern,
@@ -136,6 +136,20 @@ const init = tempFilePath => {
   return logs;
 };
 
+const eraseFromCodeString = ({ type, code, excludePatterns = [] }) => {
+  const startTime = performance.now();
+
+  const pattern = patterns[type];
+
+  const endTime = performance.now();
+  const elapsedTime = endTime - startTime;
+
+  return [
+    ...removeComments({ code, pattern, excludePatterns }),
+    formatMilliseconds(elapsedTime),
+  ];
+};
+
 const erase = () => {
   const { interactive, outputDir } = loadConfig();
   let tempFilePath = null;
@@ -177,4 +191,4 @@ const erase = () => {
   });
 };
 
-module.exports = erase;
+module.exports = { erase, eraseFromCodeString };
