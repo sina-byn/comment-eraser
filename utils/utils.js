@@ -46,4 +46,4 @@ const formatLog = (text, fgColor) => {
   return reset + fg + text;
 };
 
-module.exports = { formatLog, formatLogs };
+module.exports = { formatLog, formatLogs, formatMilliseconds };
