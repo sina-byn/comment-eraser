@@ -1,4 +1,5 @@
 const fs = require('fs-extra');
+const chalk = require('chalk');
 const readline = require('readline');
 const { performance } = require('perf_hooks');
 
@@ -61,7 +62,7 @@ const processFiles = (filePaths, config) => {
 
 const interactiveProcessFiles = (prelog, config) => {
   const report = new Report();
-  const question = `Edit ${prelog.fileName} and then press enter to continue`;
+  const question = `Edit ${chalk.bold.blue(prelog.fileName)} and then press enter to continue`;
 
   rl.question(question, () => {
     const filePaths = prelog.readLines();
@@ -108,7 +109,7 @@ const erase = () => {
     return;
   }
 
-  console.time('erased');
+  console.time(chalk.bold.green('erased'));
 
   rl.close();
 

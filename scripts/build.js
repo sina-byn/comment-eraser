@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const chalk = require('chalk');
 const { globSync } = require('glob');
 const { minify } = require('uglify-js');
 
@@ -22,18 +23,18 @@ const minifyFile = file => {
 };
 
 const build = () => {
-  console.log('building...');
-  console.time('build process');
-
+  console.log(chalk.bold.blue('building...'));
+  console.time(chalk.bold.blue('build process'));
+  
   makeEmptyDir('build');
   makeEmptyDir('build/lib');
   makeEmptyDir('build/lib/utils');
-
+  
   const files = globSync(['index.js', 'lib/**/*.js']);
   files.forEach(file => minifyFile(file));
   
-  console.timeEnd('build process');
-  console.log('build process was successful');
+  console.timeEnd(chalk.bold.blue('build process'));
+  console.log(chalk.bold.green('build process was successful'));
 };
 
 build();
