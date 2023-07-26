@@ -79,14 +79,25 @@ const interactiveProcessFiles = (prelog, config) => {
 
 const eraseFromString = (code, config = {}) => {
   const startTime = performance.now();
-  const { type = 'both', excludePatterns = [] } = config;
-
+  const { type = 'both', excludePatterns = [], output = undefined } = config;
   const pattern = patterns[type];
+  let outputPath = null;
+
+  const [commentsRemoved, removedCharsCount] = eraseComments({ code, pattern, excludePatterns });
+
+  if (output) {
+    const { path = 'cms-rm-1/cms-rm-2/cms-rm-3', file = 'output.js' } = output;
+    const filePath = getFilePath(file, path);
+
+    if (path) fs.mkdirsSync(path, { recursive: true });
+    fs.writeFileSync(filePath, commentsRemoved);
+    outputPath = filePath;
+  }
 
   const endTime = performance.now();
-  const elapsedTime = endTime - startTime;
+  const elapsedTime = Report.formatElapsedTime(endTime - startTime);
 
-  return [...eraseComments({ code, pattern, excludePatterns }), Report.formatElapsedTime(elapsedTime)];
+  return [commentsRemoved, removedCharsCount, outputPath, elapsedTime];
 };
 
 const erase = () => {
