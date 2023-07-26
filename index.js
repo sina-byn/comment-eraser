@@ -88,11 +88,11 @@ const eraseFromString = (code, config = {}) => {
   const [commentsRemoved, removedCharsCount] = eraseComments({ code, pattern, excludePatterns });
 
   if (output) {
-    const { path = '', file = 'output.js' } = output;
+    const { path = '', file = 'output.js', append = false } = output;
     const filePath = getFilePath(file, path);
 
     if (path) fs.mkdirsSync(path, { recursive: true });
-    fs.writeFileSync(filePath, commentsRemoved);
+    fs.writeFileSync(filePath, commentsRemoved, { flag: append ? 'a' : 'w' });
     outputPath = filePath;
   }
 
