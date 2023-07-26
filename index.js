@@ -21,17 +21,17 @@ const rl = readline.createInterface({
 
 const processFile = (filePath, config) => {
   const startTime = performance.now();
-  const { pattern, writeToOuput, replace, outputDir, postfix, excludePatterns } = config;
+  const { pattern, writeToOutput, replace, outputDir, postfix, excludePatterns } = config;
 
   const jsCode = fs.readFileSync(filePath, 'utf-8');
-  const outputPath = getFilePath(outputDir, filePath, postfix);
-  const [commentsRemoved, removedChars] = eraseComments({
+  const outputPath = getFilePath(filePath, outputDir, postfix);
+  const [commentsRemoved, removedCharsCount] = eraseComments({
     code: jsCode,
     pattern: pattern,
     excludePatterns: excludePatterns,
   });
 
-  if (writeToOuput) {
+  if (writeToOutput) {
     if (replace) {
       fs.writeFileSync(filePath, commentsRemoved);
     } else {
@@ -46,7 +46,7 @@ const processFile = (filePath, config) => {
     filePath,
     outputPath,
     commentsRemoved,
-    removedChars,
+    removedCharsCount,
     elapsedTime,
   };
 };
@@ -88,7 +88,7 @@ const eraseFromString = (code, config = {}) => {
   const [commentsRemoved, removedCharsCount] = eraseComments({ code, pattern, excludePatterns });
 
   if (output) {
-    const { path = 'cms-rm-1/cms-rm-2/cms-rm-3', file = 'output.js' } = output;
+    const { path = '', file = 'output.js' } = output;
     const filePath = getFilePath(file, path);
 
     if (path) fs.mkdirsSync(path, { recursive: true });
@@ -104,10 +104,10 @@ const eraseFromString = (code, config = {}) => {
 
 const erase = () => {
   const config = loadConfig();
-  const { type, include, exclude, outputDir, postfix, interactive } = config;
+  const { type, include, exclude, writeToOutput, outputDir, postfix, interactive } = config;
   config.pattern = patterns[type];
 
-  fs.emptyDirSync(outputDir);
+  if (writeToOutput) fs.emptyDirSync(outputDir);
   process.on('exit', () => removeEmptyDir(outputDir));
 
   const filePaths = getFilePaths(include, exclude, postfix);
