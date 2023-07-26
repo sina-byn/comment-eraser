@@ -8,7 +8,7 @@ const Report = require('./lib/Report');
 const Prelog = require('./lib/Prelog');
 const { eraseComments, getLangPatterns } = require('./lib/utils');
 const { loadConfig } = require('./lib/utils/configUtils');
-const { getFilePaths, getOutputPath, makeEmptyDir, removeEmptyDir } = require('./lib/utils/fileUtils');
+const { getFilePath, getFilePaths, removeEmptyDir } = require('./lib/utils/fileUtils');
 
 // * patterns
 const patterns = getLangPatterns('js');
@@ -24,7 +24,7 @@ const processFile = (filePath, config) => {
   const { pattern, replace, outputDir, postfix, excludePatterns } = config;
 
   const jsCode = fs.readFileSync(filePath, 'utf-8');
-  const outputPath = getOutputPath(outputDir, filePath, postfix);
+  const outputPath = getFilePath(outputDir, filePath, postfix);
   const [commentsRemoved, removedChars] = eraseComments({
     code: jsCode,
     pattern: pattern,
@@ -94,7 +94,7 @@ const erase = () => {
   const { type, include, exclude, outputDir, postfix, interactive } = config;
   config.pattern = patterns[type];
 
-  makeEmptyDir(outputDir);
+  fs.emptyDirSync(outputDir);
   process.on('exit', () => removeEmptyDir(outputDir));
 
   const filePaths = getFilePaths(include, exclude, postfix);

@@ -1,11 +1,8 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
 const { globSync } = require('glob');
 const { minify } = require('uglify-js');
-
-// * utils
-const { makeEmptyDir } = require('../lib/utils/fileUtils');
 
 // * config
 const minify_options = {
@@ -26,9 +23,9 @@ const build = () => {
   console.log(chalk.bold.blue('building...'));
   console.time(chalk.bold.blue('build process'));
   
-  makeEmptyDir('build');
-  makeEmptyDir('build/lib');
-  makeEmptyDir('build/lib/utils');
+  fs.emptyDirSync('build');
+  fs.emptyDirSync('build/lib');
+  fs.emptyDirSync('build/lib/utils');
   
   const files = globSync(['index.js', 'lib/**/*.js']);
   files.forEach(file => minifyFile(file));
