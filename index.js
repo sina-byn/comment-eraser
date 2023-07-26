@@ -21,7 +21,7 @@ const rl = readline.createInterface({
 
 const processFile = (filePath, config) => {
   const startTime = performance.now();
-  const { pattern, replace, outputDir, postfix, excludePatterns } = config;
+  const { pattern, writeToOuput, replace, outputDir, postfix, excludePatterns } = config;
 
   const jsCode = fs.readFileSync(filePath, 'utf-8');
   const outputPath = getFilePath(outputDir, filePath, postfix);
@@ -31,10 +31,12 @@ const processFile = (filePath, config) => {
     excludePatterns: excludePatterns,
   });
 
-  if (replace) {
-    fs.writeFileSync(filePath, commentsRemoved);
-  } else {
-    fs.writeFileSync(outputPath, commentsRemoved);
+  if (writeToOuput) {
+    if (replace) {
+      fs.writeFileSync(filePath, commentsRemoved);
+    } else {
+      fs.writeFileSync(outputPath, commentsRemoved);
+    }
   }
 
   const endTime = performance.now();
@@ -43,8 +45,8 @@ const processFile = (filePath, config) => {
   return {
     filePath,
     outputPath,
-    removedChars,
     commentsRemoved,
+    removedChars,
     elapsedTime,
   };
 };
@@ -126,6 +128,7 @@ const erase = () => {
 
   const report = processFiles(filePaths, config);
   report.print();
+  return report.logs;
 };
 
 module.exports = { erase, eraseFromString };
