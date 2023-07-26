@@ -1,8 +1,16 @@
 {
-  "printWidth": 80,
+  "printWidth": 120,
   "tabWidth": 2,
   "singleQuote": true,
   "trailingComma": "all",
   "arrowParens": "avoid",
-  "bracketSpacing": true
+  "bracketSpacing": true,
+  "overrides": [
+    {
+      "files": "./lib/utils/index.js",
+      "options": {
+        "printWidth": 140
+      }
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 node_modules
 /scripts
-/utils
+/lib
 
 index.js
 eraser.config.json

@@ -1,61 +1,22 @@
-const tmp = require('tmp');
-const path = require('path');
 const fs = require('fs-extra');
 const readline = require('readline');
 const { performance } = require('perf_hooks');
 
-// * utils
-const { getPaths, getOutputPath } = require('./utils/fileUtils');
-const { formatLog, formatLogs, formatMilliseconds } = require('./utils/utils');
-const { loadConfig } = require('./utils/configUtils');
+// * lib
+const Report = require('./lib/Report');
+const Prelog = require('./lib/Prelog');
+const { eraseComments, getLangPatterns } = require('./lib/utils');
+const { loadConfig } = require('./lib/utils/configUtils');
+const { getFilePaths, getOutputPath, makeEmptyDir, removeEmptyDir } = require('./lib/utils/fileUtils');
 
 // * patterns
-const commentPattern =
-  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\r*\n*\/\/.*\r*\n|\r*\n*\/\/.*|\r*\n*\/\*[\s\S]*?\*\/\s*$|\/\*[\s\S]*?\*\/\s*/gm;
-const inlineCommentPattern =
-  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\r*\n*\/\/.*\r*\n|\r*\n*\/\/.*/gm;
-const blockCommentPattern =
-  /("(?:\\[\s\S]|[^"])*")|('(?:\\[\s\S]|[^'])*')|(`(?:\\[\s\S]|[^`])*`)|\s*\r*\n*\/\*[\s\S]*?\*\/\s*$|\/\*[\s\S]*?\*\/\s*/gm;
-const patterns = {
-  inline: inlineCommentPattern,
-  block: blockCommentPattern,
-  both: commentPattern,
-};
+const patterns = getLangPatterns('js');
 
+// * readline interface
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-
-const removeComments = ({ code, pattern, excludePatterns }) => {
-  let removedChars = 0;
-
-  excludePatterns = excludePatterns.map(pt => new RegExp(pt, 'gm'));
-
-  code = code.replace(pattern, (match, capture_1, capture_2, capture_3) => {
-    let shouldExclude = false;
-
-    if (excludePatterns) {
-      excludePatterns.forEach(pt => {
-        if (pt.test(match)) shouldExclude = true;
-      });
-    }
-
-    if (
-      !shouldExclude &&
-      capture_1 === undefined &&
-      capture_2 === undefined &&
-      capture_3 === undefined
-    ) {
-      removedChars += match.length;
-      return '';
-    }
-
-    return match;
-  });
-
-  return [code, removedChars];
-};
 
 const processFile = (filePath, config) => {
   const startTime = performance.now();
@@ -63,17 +24,21 @@ const processFile = (filePath, config) => {
 
   const jsCode = fs.readFileSync(filePath, 'utf-8');
   const outputPath = getOutputPath(outputDir, filePath, postfix);
-  const [commentsRemoved, removedChars] = removeComments({
+  const [commentsRemoved, removedChars] = eraseComments({
     code: jsCode,
     pattern: pattern,
     excludePatterns: excludePatterns,
   });
 
-  if (replace) fs.writeFileSync(filePath, commentsRemoved);
-  else fs.writeFileSync(outputPath, commentsRemoved);
+  if (replace) {
+    fs.writeFileSync(filePath, commentsRemoved);
+  } else {
+    fs.writeFileSync(outputPath, commentsRemoved);
+  }
 
   const endTime = performance.now();
   const elapsedTime = endTime - startTime;
+
   return {
     filePath,
     outputPath,
@@ -83,112 +48,72 @@ const processFile = (filePath, config) => {
   };
 };
 
-const processFiles = (filePaths, logs, config) => {
-  const { interactive, tempFilePath } = config;
+const processFiles = (filePaths, config) => {
+  const report = new Report();
 
-  if (interactive) {
-    const tempFileName = path.parse(tempFilePath).base;
-
-    rl.question(
-      `Edit \x1b[4m\x1b[34m${tempFileName}\x1b[0m and then press enter to continue`,
-      () => {
-        const content = fs.readFileSync(tempFilePath, 'utf-8');
-        const filesRules = content
-          .split('\n')
-          .map(rule => rule.split('='))
-          .filter(rule => rule.length === 2 && rule[1] === 'y');
-
-        for (const [filePath, _] of filesRules) {
-          logs.push(processFile(filePath, config));
-        }
-
-        rl.close();
-      },
-    );
-
-    return;
-  }
-
-  rl.close();
-  filePaths.forEach(filePath => {
-    logs.push(processFile(filePath, config));
+  filePaths.forEach(f => {
+    const log = processFile(f, config);
+    report.append(log);
   });
+
+  return report;
 };
 
-const init = tempFilePath => {
-  const config = loadConfig();
-  const { type, include, exclude, outputDir, postfix, interactive } = config;
-  const pattern = patterns[type];
-  let logs = [];
+const interactiveProcessFiles = (prelog, config) => {
+  const report = new Report();
+  const question = `Edit ${prelog.fileName} and then press enter to continue`;
 
-  if (outputDir) {
-    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-    else fs.emptyDirSync(outputDir);
-  }
+  rl.question(question, () => {
+    const filePaths = prelog.readLines();
+    filePaths.forEach(f => {
+      const log = processFile(f, config);
+      report.append(log);
+    });
 
-  const filePaths = getPaths(include, exclude, postfix);
+    rl.close();
+  });
 
-  if (interactive)
-    fs.writeFileSync(tempFilePath, filePaths.map(p => p + '=y').join('\n'));
-
-  processFiles(filePaths, logs, { ...config, pattern, tempFilePath });
-
-  return logs;
+  return report;
 };
 
-const eraseFromCodeString = ({ type, code, excludePatterns = [] }) => {
+const eraseFromString = (code, config = {}) => {
   const startTime = performance.now();
+  const { type = 'both', excludePatterns = [] } = config;
 
   const pattern = patterns[type];
 
   const endTime = performance.now();
   const elapsedTime = endTime - startTime;
 
-  return [
-    ...removeComments({ code, pattern, excludePatterns }),
-    formatMilliseconds(elapsedTime),
-  ];
+  return [...eraseComments({ code, pattern, excludePatterns }), Report.formatElapsedTime(elapsedTime)];
 };
 
 const erase = () => {
-  const { interactive, outputDir } = loadConfig();
-  let tempFilePath = null;
+  const config = loadConfig();
+  const { type, include, exclude, outputDir, postfix, interactive } = config;
+  config.pattern = patterns[type];
 
-  const label = formatLog('erased', 'green');
-  console.time(label);
+  makeEmptyDir(outputDir);
+  process.on('exit', () => removeEmptyDir(outputDir));
 
-  if (interactive) {
-    tmp.setGracefulCleanup();
-    const tempFile = tmp.fileSync({
-      mode: 0o644,
-      prefix: 'prelog',
-      tmpdir: process.cwd(),
-    });
-    tempFilePath = tempFile.name;
-  }
-
-  const logs = init(tempFilePath);
+  const filePaths = getFilePaths(include, exclude, postfix);
 
   if (interactive) {
-    rl.on('close', () => {
-      console.log(label);
-      console.log('\x1b[0m');
-      console.table(formatLogs(logs));
-    });
+    const prelog = new Prelog();
+    prelog.writeLines(filePaths);
+    const report = interactiveProcessFiles(prelog, config);
+
+    rl.on('close', () => report.print(interactive));
 
     return;
   }
 
-  console.timeEnd(label);
-  console.log('\x1b[0m');
-  console.table(formatLogs(logs));
+  console.time('erased');
 
-  process.on('exit', () => {
-    if (outputDir && fs.existsSync(outputDir)) {
-      const isEmpty = fs.readdirSync(outputDir).length === 0;
-      if (isEmpty) fs.rmdirSync(outputDir);
-    }
-  });
+  rl.close();
+
+  const report = processFiles(filePaths, config);
+  report.print();
 };
 
-module.exports = { erase, eraseFromCodeString };
+module.exports = { erase, eraseFromString };
