@@ -52,6 +52,9 @@ console.log(commentsRemoved, removedCharsCount, elapsedTime);
 
 Erases comments from the specified files **-** Read [Configuration](#configuration) and [Interactive Mode](#interactive-mode) for more.
 
+**Params**
+* `configPath`: **String -** optional **-** default is `'eraser.config.json'`
+
 **Returns**
 * `{ filePath, outputPath, commentsRemoved, removedCharsCount, elapsedTime }[] | undefined`: **{ String, String, String, Number, TimeStamp }[ ] | undefined**
 
