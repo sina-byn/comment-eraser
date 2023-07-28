@@ -2,8 +2,8 @@ node_modules
 /scripts
 /lib
 
-index.js
-eraser.config.json
+./index.js
+./eraser.config.json
 
 .git
 .gitignore

@@ -131,6 +131,4 @@ const erase = (configPath = 'eraser.config.json') => {
   return report.logs;
 };
 
-erase('test.config.json');
-
 module.exports = { erase, eraseFromString };
