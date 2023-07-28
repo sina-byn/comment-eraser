@@ -102,8 +102,8 @@ const eraseFromString = (code, config = {}) => {
   return [commentsRemoved, removedCharsCount, outputPath, elapsedTime];
 };
 
-const erase = () => {
-  const config = loadConfig();
+const erase = (configPath = 'eraser.config.json') => {
+  const config = loadConfig(configPath);
   const { type, include, exclude, writeToOutput, outputDir, postfix, interactive } = config;
   config.pattern = patterns[type];
 
@@ -130,5 +130,7 @@ const erase = () => {
   report.print();
   return report.logs;
 };
+
+erase('test.config.json');
 
 module.exports = { erase, eraseFromString };
