@@ -1,7 +1,13 @@
 {
   "name": "comment-eraser",
   "version": "3.0.2",
+  "description": "comment-eraser is a Node.js package that removes comments from JavaScript files efficiently. It offers customizable options for tailoring the comment removal process and includes an interactive mode for selective file cleanup. Overall, comment-eraser simplifies and streamlines code cleanup tasks.",
   "main": "build/index.js",
+  "author": {
+    "name": "Sina Bayandorian",
+    "email": "sina.sina.bayan@protonmail.com",
+    "url": "https://portfolio-sina-byn.vercel.app/"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/sina-byn/comment-eraser"
@@ -10,7 +16,6 @@
     "start": "node index.js",
     "build": "node scripts/build.js"
   },
-  "author": "Sina Bayandorian",
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2",
@@ -21,7 +26,6 @@
   "devDependencies": {
     "uglify-js": "^3.17.4"
   },
-  "description": "comment-eraser is a Node.js package that removes comments from JavaScript files efficiently. It offers customizable options for tailoring the comment removal process and includes an interactive mode for selective file cleanup. Overall, comment-eraser simplifies and streamlines code cleanup tasks.",
   "keywords": [
     "nodejs",
     "javascript",
@@ -30,5 +34,9 @@
     "comment-remover",
     "code-cleanup",
     "interactive-mode"
-  ]
+  ],
+  "bugs": {
+    "url": "https://github.com/sina-byn/comment-eraser/issues",
+    "email": "sina.sina.bayan@protonmail.com"
+  }
 }
