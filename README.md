@@ -13,6 +13,7 @@ Please consider following this project's author, [Sina Bayandorian](https://gith
     - [eraseFromString](#erasefromstring)
 - [Configuration](#configuration)
 - [Interactive Mode](#interactive-mode)
+- [Cli Tool](#cli-tool)
 
 ## Install
 
@@ -149,3 +150,7 @@ In this mode a temp file named `prelog` is created in which you can specify whic
 sample.js=y
 sample-2.js=n
 ```
+
+## Cli Tool
+[eraser-cli](https://www.npmjs.com/package/eraser-cli) - the cli tool for this package
+easily integrate the comment-eraser into your build process or install it globally and use it wherever you want
