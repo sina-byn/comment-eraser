@@ -1,4 +1,4 @@
-# comment-eraser [![NPM version](https://img.shields.io/npm/v/comment-eraser.svg?style=flat)](https://www.npmjs.com/package/comment-eraser) [![NPM monthly downloads](https://img.shields.io/npm/dm/comment-eraser.svg?style=flat)](https://npmjs.org/package/comment-eraser) [![NPM total downloads](https://img.shields.io/npm/dt/comment-eraser.svg?style=flat)](https://npmjs.org/package/comment-eraser) 
+# DEPRECATED - comment-eraser [![NPM version](https://img.shields.io/npm/v/comment-eraser.svg?style=flat)](https://www.npmjs.com/package/comment-eraser) [![NPM monthly downloads](https://img.shields.io/npm/dm/comment-eraser.svg?style=flat)](https://npmjs.org/package/comment-eraser) [![NPM total downloads](https://img.shields.io/npm/dt/comment-eraser.svg?style=flat)](https://npmjs.org/package/comment-eraser) 
 
 > Removing comments from JavaScript files has never been this easy.
 
